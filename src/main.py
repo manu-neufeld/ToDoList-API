@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User,Task
 #from models import Person
 
 app = Flask(__name__)
@@ -39,7 +39,36 @@ def handle_hello():
 
     return jsonify(response_body), 200
 
+@app.route('/todos/user/<username>', methods=['POST'])
+def create_user(username):
+    # body=request.get_json()
+
+    # if body is None:
+    #     return "Body content is missing", 400
+    new_user= User(user_name= username)
+    new_user.add_user()
+    # print(new_user)
+
+    return jsonify(new_user.serialize()), 200
+
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=PORT, debug=False)
+
+@app.route('/todos/user/<username>', methods=['GET'])
+def get_users(username):
+    users_nick = User.get_user(username)
+    print(users_nick)
+
+    return jsonify(users_nick), 200
+
+@app.route('/todos/user/<username>/task', methods=['POST'])
+def create_tasks(username):
+    body=request.get_json()
+  
+    new_task = Task(user_to_do= username ,label=body["label"],done=body["done"])
+    new_task.add_task()
+
+    return jsonify(new_task.serialize())
+    # print(new_user)
