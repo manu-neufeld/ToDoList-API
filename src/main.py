@@ -31,37 +31,32 @@ def sitemap():
     return generate_sitemap(app)
 
 @app.route('/user', methods=['GET'])
-def handle_hello():
+def get_all_user():
+    try:
+        all_users = User.get_user()
+        return jsonify(all_users), 200
+    except:
+        return "Do not found users", 400
 
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
-    }
-
-    return jsonify(response_body), 200
+@app.route('/user/<username>', methods=['GET'])
+def read_user(username):
+    try:
+        user=User.get_user(username)
+        return jsonify(user), 200
+    except:
+        return "user not found", 400
 
 @app.route('/todos/user/<username>', methods=['POST'])
 def create_user(username):
-    # body=request.get_json()
-
-    # if body is None:
-    #     return "Body content is missing", 400
+    
     new_user= User(user_name= username)
     new_user.add_user()
-    # print(new_user)
 
     return jsonify(new_user.serialize()), 200
 
-# this only runs if `$ python src/main.py` is executed
-if __name__ == '__main__':
-    PORT = int(os.environ.get('PORT', 3000))
-    app.run(host='0.0.0.0', port=PORT, debug=False)
-
-@app.route('/todos/user/<username>', methods=['GET'])
-def get_users(username):
-    users_nick = User.get_user(username)
-    print(users_nick)
-
-    return jsonify(users_nick), 200
+@app.route('/todos/user/<username>', methods=['DELETE'])
+def delete_user(username):
+    User.delete_user(username)
 
 @app.route('/todos/user/<username>/task', methods=['POST'])
 def create_tasks(username):
@@ -71,4 +66,27 @@ def create_tasks(username):
     new_task.add_task()
 
     return jsonify(new_task.serialize())
-    # print(new_user)
+
+@app.route('/todos/user/<username>/task', methods=['GET'])
+def read_task(username):
+    try:
+        tasks=Task.read_all_tasks(username)
+        return tasks, 200
+    except:
+        return "there are not task", 400
+
+@app.route('/todos/user/<username>/task/<int:id>', methods=['PUT'])
+def update(id):
+    try:
+        body=request.get_json()
+        Task.update_task(id, body['label'], body['done'])
+        return "task updated", 200
+    except:
+        return "task not found", 400
+
+
+
+# this only runs if `$ python src/main.py` is executed
+if __name__ == '__main__':
+    PORT = int(os.environ.get('PORT', 3000))
+    app.run(host='0.0.0.0', port=PORT, debug=False)
